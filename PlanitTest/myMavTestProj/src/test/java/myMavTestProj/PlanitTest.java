@@ -4,6 +4,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -20,6 +22,7 @@ public class PlanitTest {
 	String expInvEmailErrMsg = "Please enter a valid email";
 	WebElement contactLink;
 	WebElement shopLink;
+	WebElement element;
 	
 	@BeforeMethod
 	public void openURL()
@@ -52,14 +55,6 @@ public class PlanitTest {
 		//find element "Contact" and click at it
 		contactLink = driver.findElement(By.linkText("Contact"));
 		contactLink.click();
-		
-		//wait for the page to get displayed and elements to be recognized by subsequent actions
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	public void gotoShop() {
@@ -70,23 +65,16 @@ public class PlanitTest {
 		//find element "Shop" and click at it
 		shopLink = driver.findElement(By.linkText("Shop"));
 		shopLink.click();
-		
-		//wait for the page to get displayed and elements to be recognized by subsequent actions
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-}
+	}
 	
 	public boolean validateError() {
 
 			//navigate to contact page		
 			gotoContact();
 			
-			//click at Submit link
-			driver.findElement(By.linkText("Submit")).click();
+			////wait for Submit link to become available and click at it
+			element = (new WebDriverWait(driver, 10)).until(ExpectedConditions.elementToBeClickable(By.linkText("Submit")));
+			element.click();
 		
 			boolean cond1=false, cond2=false, cond3=false, cond4=false;
 			
@@ -120,13 +108,16 @@ public class PlanitTest {
 	public boolean populateMandatoryFields() {
 		
 		boolean cond;
+		
+		//wait for forename field to become available
+		element = (new WebDriverWait(driver, 10)).until(ExpectedConditions.elementToBeClickable(By.id("forename")));
 				
 		//populate mandatory fields with valid data
-		driver.findElement(By.id("forename")).sendKeys("Alag");
+		element.sendKeys("Alag");
 		driver.findElement(By.id("email")).sendKeys("alag@gmail.com");
 		driver.findElement(By.id("message")).sendKeys("The site looks cool, user friendly");
 		
-		//check if the actual "valid message" matches the expected "valid message" and true, else return false
+		//check if the actual "valid message" matches the expected "valid message" and return true, else return false
 		String actMsg1 = driver.findElement(By.cssSelector("#header-message")).getText();
 		if (validMsg1.equals(actMsg1))
 			cond=true;
@@ -145,13 +136,8 @@ public class PlanitTest {
 		if (populateMandatoryFields())
 			driver.findElement(By.linkText("Submit")).click();
 		
-		//wait for the new page to get displayed and elements to be recognized for subsequent actions
-		try {
-			Thread.sleep(12000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//wait for the Back button in the page to become available
+		element = (new WebDriverWait(driver, 15)).until(ExpectedConditions.elementToBeClickable(By.xpath("//a[@class='btn']")));
 		
 		//check the successful message at page top contains string "Thanks" and return true, else return false
 		String actText = driver.findElement(By.tagName("strong")).getText();
@@ -171,10 +157,12 @@ public class PlanitTest {
 		gotoContact();
 		
 		boolean cond1=false, cond2=false;
-		//String expErrMsg1 = "We welcome your feedback - but we won't get it unless you complete the form correctly.";
+		
+		//wait for forename field to become available
+		element = (new WebDriverWait(driver, 15)).until(ExpectedConditions.elementToBeClickable(By.id("forename")));
 		
 		//populate mandatory fields with invalid data
-		driver.findElement(By.id("forename")).sendKeys("###");
+		element.sendKeys("###");
 		driver.findElement(By.id("email")).sendKeys("a");
 		driver.findElement(By.id("message")).sendKeys("#@$");
 		
@@ -183,6 +171,7 @@ public class PlanitTest {
 		if (expErrMsg1.equals(actErrMsg1))
 			cond1=true;
 		
+		//only email field displays error message on invalid data, forename and message fields do no display any error message on invalid data
 		//capture actual invalid email error message and compare with expected invalid email error message
 		String actInvEmailErrMsg = driver.findElement(By.id("email-err")).getText();
 		if (expInvEmailErrMsg.equals(actInvEmailErrMsg))
@@ -199,6 +188,9 @@ public class PlanitTest {
 		
 		//navigate to Shop page
 		gotoShop();
+		
+		//wait for the first instance of Buy button to become available in the page
+		element = (new WebDriverWait(driver, 15)).until(ExpectedConditions.elementToBeClickable(By.xpath("//a[@class='btn btn-success']")));
 
 		//Click at Funny Cow twice
 		for (int i=0; i<2; i++)
@@ -212,13 +204,8 @@ public class PlanitTest {
 		//click the at the Cart link
 		driver.findElement(By.cssSelector("li#nav-cart")).click();
 		
-		//wait for the new page to get displayed and elements to be recognized for subsequent actions
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//wait for "Empty Cart" element to become available
+		element = (new WebDriverWait(driver, 15)).until(ExpectedConditions.elementToBeClickable(By.linkText("Empty Cart")));
 	
 		//check all individual item description, unit price, units, subtotal and total are displayed as expected
 		if ((driver.findElement(By.xpath("//td[contains(text(),'Funny Cow')]"))).isDisplayed() && (driver.findElement(By.xpath("//td[contains(text(),'$10.99')]"))).isDisplayed() && (driver.findElement(By.xpath("//input[@value='2']"))).isDisplayed() && (driver.findElement(By.xpath("//td[contains(text(),'$21.98')]"))).isDisplayed() && (driver.findElement(By.xpath("//td[contains(text(),'Fluffy Bunny')]"))).isDisplayed() && (driver.findElement(By.xpath("//td[contains(text(),'$9.99')]"))).isDisplayed() && (driver.findElement(By.xpath("//input[@value='1']"))).isDisplayed() && (driver.findElement(By.xpath("//td[contains(text(),'$9.99')]"))).isDisplayed() && (driver.findElement(By.xpath("//strong[contains(text(),'31.97')]"))).isDisplayed())
